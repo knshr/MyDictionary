@@ -6,16 +6,18 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex justify-between items-center py-6">
             <div>
-              <h1 class="text-3xl font-bold text-gray-900">Dictionary</h1>
+              <h1 class="text-3xl font-bold text-gray-900">
+                {{ $t('dictionary.title') }}
+              </h1>
               <p class="mt-1 text-sm text-gray-500">
-                Search for word definitions, pronunciations, and examples
+                {{ $t('dictionary.searchForWordDefinitions') }}
               </p>
             </div>
             <div class="flex items-center space-x-4">
               <button
                 @click="showHistory = !showHistory"
                 class="p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                title="Toggle search history"
+                :title="$t('navigation.toggleHistory')"
               >
                 <svg
                   class="w-6 h-6"
@@ -35,7 +37,7 @@
                 @click="clearAll"
                 class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors duration-200"
               >
-                Clear All
+                {{ $t('navigation.clearAll') }}
               </button>
             </div>
           </div>
@@ -51,7 +53,7 @@
               class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6"
             >
               <h2 class="text-lg font-semibold text-gray-900 mb-4">
-                Search Words
+                {{ $t('dictionary.searchWords') }}
               </h2>
               <DictionarySearch @search="handleSearch" />
             </div>
@@ -59,6 +61,7 @@
             <!-- Results Section -->
             <div v-if="dictionaryStore.hasResults">
               <DictionaryResults
+                :key="resultsKey"
                 :results="dictionaryStore.searchResults"
                 @clear="clearResults"
                 @search-synonym="searchSynonym"
@@ -87,28 +90,43 @@
                   />
                 </svg>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">
-                  Start Searching
+                  {{ $t('dictionary.startSearching') }}
                 </h3>
                 <p class="text-gray-500 mb-6">
-                  Enter a word above to find its definition, pronunciation, and
-                  usage examples.
+                  {{ $t('dictionary.searchDescription') }}
                 </p>
                 <div class="grid grid-cols-2 gap-4 text-sm">
                   <div class="text-center p-3 bg-blue-50 rounded-lg">
-                    <div class="text-blue-600 font-medium">Definitions</div>
-                    <div class="text-blue-500">Clear explanations</div>
+                    <div class="text-blue-600 font-medium">
+                      {{ $t('dictionary.definitions') }}
+                    </div>
+                    <div class="text-blue-500">
+                      {{ $t('dictionary.clearExplanations') }}
+                    </div>
                   </div>
                   <div class="text-center p-3 bg-green-50 rounded-lg">
-                    <div class="text-green-600 font-medium">Pronunciation</div>
-                    <div class="text-green-500">Audio & phonetic</div>
+                    <div class="text-green-600 font-medium">
+                      {{ $t('dictionary.pronunciation') }}
+                    </div>
+                    <div class="text-green-500">
+                      {{ $t('dictionary.audioPhonetic') }}
+                    </div>
                   </div>
                   <div class="text-center p-3 bg-purple-50 rounded-lg">
-                    <div class="text-purple-600 font-medium">Examples</div>
-                    <div class="text-purple-500">Usage in context</div>
+                    <div class="text-purple-600 font-medium">
+                      {{ $t('dictionary.examples') }}
+                    </div>
+                    <div class="text-purple-500">
+                      {{ $t('dictionary.usageInContext') }}
+                    </div>
                   </div>
                   <div class="text-center p-3 bg-orange-50 rounded-lg">
-                    <div class="text-orange-600 font-medium">Synonyms</div>
-                    <div class="text-orange-500">Related words</div>
+                    <div class="text-orange-600 font-medium">
+                      {{ $t('dictionary.synonyms') }}
+                    </div>
+                    <div class="text-orange-500">
+                      {{ $t('dictionary.relatedWords') }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -122,7 +140,9 @@
               <div
                 class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"
               ></div>
-              <p class="text-gray-600">Searching for definitions...</p>
+              <p class="text-gray-600">
+                {{ $t('dictionary.searchingForDefinitions') }}
+              </p>
             </div>
           </div>
 
@@ -135,13 +155,13 @@
             >
               <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold text-gray-900">
-                  Recent Searches
+                  {{ $t('dictionary.recentSearches') }}
                 </h3>
                 <button
                   @click="dictionaryStore.clearHistory"
                   class="text-sm text-red-600 hover:text-red-800"
                 >
-                  Clear
+                  {{ $t('dictionary.clear') }}
                 </button>
               </div>
               <div
@@ -161,7 +181,7 @@
                 </button>
               </div>
               <div v-else class="text-center text-gray-500 text-sm py-4">
-                No recent searches
+                {{ $t('dictionary.noRecentSearches') }}
               </div>
             </div>
 
@@ -170,23 +190,29 @@
               class="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
             >
               <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                Quick Stats
+                {{ $t('dictionary.quickStats') }}
               </h3>
               <div class="space-y-3">
                 <div class="flex justify-between items-center">
-                  <span class="text-sm text-gray-600"> Total Searches </span>
+                  <span class="text-sm text-gray-600">
+                    {{ $t('dictionary.totalSearches') }}
+                  </span>
                   <span class="text-sm font-medium text-gray-900">
                     {{ dictionaryStore.totalSearches }}
                   </span>
                 </div>
                 <div class="flex justify-between items-center">
-                  <span class="text-sm text-gray-600"> Today's Searches </span>
+                  <span class="text-sm text-gray-600">
+                    {{ $t('dictionary.todaySearches') }}
+                  </span>
                   <span class="text-sm font-medium text-gray-900">
                     {{ dictionaryStore.todaySearches }}
                   </span>
                 </div>
                 <div class="flex justify-between items-center">
-                  <span class="text-sm text-gray-600"> Favorites </span>
+                  <span class="text-sm text-gray-600">
+                    {{ $t('dictionary.favorites') }}
+                  </span>
                   <span class="text-sm font-medium text-gray-900">
                     {{ favoritesStore.favoritesCount }}
                   </span>
@@ -197,11 +223,10 @@
             <!-- API Info -->
             <div class="bg-blue-50 rounded-lg p-6 mt-6">
               <h3 class="text-lg font-semibold text-blue-900 mb-2">
-                Powered by
+                {{ $t('dictionary.poweredBy') }}
               </h3>
               <p class="text-sm text-blue-700 mb-3">
-                Free Dictionary API provides comprehensive word definitions,
-                pronunciations, and examples.
+                {{ $t('dictionary.freeDictionaryApi') }}
               </p>
               <a
                 href="https://dictionaryapi.dev/"
@@ -209,7 +234,7 @@
                 rel="noopener noreferrer"
                 class="text-sm text-blue-600 hover:text-blue-800 underline"
               >
-                Learn more →
+                {{ $t('dictionary.learnMore') }} →
               </a>
             </div>
           </div>
@@ -222,16 +247,19 @@
 <script setup>
   import { ref, onMounted, watch } from 'vue';
   import { usePage } from '@inertiajs/vue3';
+  import { useI18n } from 'vue-i18n';
   import { useDictionaryStore } from '@/stores/dictionary';
   import { useFavoritesStore } from '@/stores/favorites';
   import DashboardLayout from '@/Pages/Dashboard/DashboardLayout.vue';
   import DictionarySearch from '@/components/DictionarySearch.vue';
   import DictionaryResults from '@/components/DictionaryResults.vue';
 
+  const { t } = useI18n();
   const page = usePage();
   const dictionaryStore = useDictionaryStore();
   const favoritesStore = useFavoritesStore();
   const showHistory = ref(false);
+  const resultsKey = ref(0);
 
   // Handle URL query parameter for initial search
   onMounted(() => {
@@ -241,7 +269,18 @@
     }
   });
 
+  // Watch for changes to the 'q' query param and trigger search
+  watch(
+    () => page.props.query,
+    (newQuery, oldQuery) => {
+      if (newQuery && newQuery !== oldQuery) {
+        handleSearch(newQuery);
+      }
+    }
+  );
+
   const handleSearch = async query => {
+    await favoritesStore.fetchFavorites();
     await dictionaryStore.searchWord(query);
   };
 
@@ -258,14 +297,16 @@
     handleSearch(synonym);
   };
 
-  const handleFavoriteAdded = favorite => {
-    // Show a success message or update UI
-    console.log('Favorite added:', favorite);
+  const handleFavoriteAdded = () => {
+    favoritesStore.fetchFavorites().then(() => {
+      resultsKey.value++;
+    });
   };
 
-  const handleFavoriteRemoved = favorite => {
-    // Show a success message or update UI
-    console.log('Favorite removed:', favorite);
+  const handleFavoriteRemoved = () => {
+    favoritesStore.fetchFavorites().then(() => {
+      resultsKey.value++;
+    });
   };
 
   const formatTime = timestamp => {
@@ -273,9 +314,11 @@
     const now = new Date();
     const diffInMinutes = Math.floor((now - date) / (1000 * 60));
 
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-    return `${Math.floor(diffInMinutes / 1440)}d ago`;
+    if (diffInMinutes < 1) return t('common.justNow');
+    if (diffInMinutes < 60)
+      return `${diffInMinutes}${t('common.minutes')} ${t('common.ago')}`;
+    if (diffInMinutes < 1440)
+      return `${Math.floor(diffInMinutes / 60)}${t('common.hours')} ${t('common.ago')}`;
+    return `${Math.floor(diffInMinutes / 1440)}${t('common.days')} ${t('common.ago')}`;
   };
 </script>

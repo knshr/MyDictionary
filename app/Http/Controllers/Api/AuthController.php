@@ -102,6 +102,7 @@ class AuthController extends Controller
      *       "created_at": "2024-01-01T00:00:00.000000Z",
      *       "updated_at": "2024-01-01T00:00:00.000000Z"
      *     },
+     *     "token": "1|abc123...",
      *     "email_verified": true
      *   }
      * }
@@ -123,12 +124,22 @@ class AuthController extends Controller
 
         try {
             $result = $this->authService->verifyOtp($request->email, $request->otp);
+            
+            // Get the user from the result
+            $user = $result['user']->resource;
+            
+            // Create Sanctum token for API authentication
+            $token = $user->createToken('auth-token')->plainTextToken;
+            
+            // Also authenticate the user in the session for web routes
+            auth()->login($user);
 
             return response()->json([
                 'success' => true,
                 'message' => $result['message'],
                 'data' => [
                     'user' => $result['user'],
+                    'token' => $token,
                     'email_verified' => $result['email_verified'],
                 ]
             ], 200);
@@ -227,12 +238,22 @@ class AuthController extends Controller
 
         try {
             $result = $this->authService->verifyRegistrationOtp($request->email, $request->otp);
+            
+            // Get the user from the result
+            $user = $result['user']->resource;
+            
+            // Create Sanctum token for API authentication
+            $token = $user->createToken('auth-token')->plainTextToken;
+            
+            // Also authenticate the user in the session for web routes
+            auth()->login($user);
 
             return response()->json([
                 'success' => true,
                 'message' => $result['message'],
                 'data' => [
                     'user' => $result['user'],
+                    'token' => $token,
                     'email_verified' => $result['email_verified'],
                 ]
             ], 200);
@@ -301,8 +322,16 @@ class AuthController extends Controller
      *   "message": "Logout successful"
      * }
      */
-    public function logout(): JsonResponse
+    public function logout(Request $request): JsonResponse
     {
+        // Revoke the current token
+        if ($request->user()) {
+            $request->user()->currentAccessToken()->delete();
+        }
+        
+        // Also logout from session for web routes
+        auth()->logout();
+        
         $result = $this->authService->logout();
 
         return response()->json([
@@ -380,7 +409,7 @@ class AuthController extends Controller
         ]);
 
         try {
-            $user = $this->authService->getUserByEmail($request->email);
+            $user = $this->authService->getUserModelByEmail($request->email);
 
             if (!$user) {
                 return response()->json([

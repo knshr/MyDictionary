@@ -72,6 +72,9 @@ class AuthService
             $user->refresh();
         }
 
+        // Authenticate the user after successful OTP verification
+        Auth::login($user);
+
         return [
             'user' => new UserResource($user),
             'message' => 'OTP verified successfully.',
@@ -161,6 +164,11 @@ class AuthService
     {
         $user = $this->userRepository->findByEmail($email);
         return $user ? new UserResource($user) : null;
+    }
+
+    public function getUserModelByEmail(string $email)
+    {
+        return $this->userRepository->findByEmail($email);
     }
 
     public function resendOtp(string $email, string $type = 'login'): array

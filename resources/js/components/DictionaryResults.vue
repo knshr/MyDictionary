@@ -15,7 +15,7 @@
               v-if="pronunciation.audio"
               @click="playAudio(pronunciation.audio)"
               class="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition-colors duration-200"
-              title="Play pronunciation"
+              :title="$t('dictionary.pronunciation')"
             >
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -37,7 +37,7 @@
           <button
             @click="$emit('clear')"
             class="p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
-            title="Clear results"
+            :title="$t('dictionary.clearResults')"
           >
             <svg
               class="w-6 h-6"
@@ -97,7 +97,9 @@
             class="mt-3"
           >
             <div class="flex flex-wrap items-center gap-2">
-              <span class="text-sm font-medium text-gray-500">Synonyms:</span>
+              <span class="text-sm font-medium text-gray-500"
+                >{{ $t('dictionary.synonyms') }}:</span
+              >
               <div class="flex flex-wrap gap-1">
                 <span
                   v-for="synonym in definition.synonyms.slice(0, 5)"
@@ -111,7 +113,7 @@
                   v-if="definition.synonyms.length > 5"
                   class="text-xs text-gray-500"
                 >
-                  +{{ definition.synonyms.length - 5 }} more
+                  +{{ definition.synonyms.length - 5 }} {{ $t('common.more') }}
                 </span>
               </div>
             </div>
@@ -139,9 +141,9 @@
             d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
           />
         </svg>
-        <p class="text-lg font-medium">No definitions found</p>
+        <p class="text-lg font-medium">{{ $t('dictionary.noResults') }}</p>
         <p class="text-sm">
-          Try searching for a different word or check the spelling.
+          {{ $t('dictionary.tryDifferentWord') }}
         </p>
       </div>
     </div>

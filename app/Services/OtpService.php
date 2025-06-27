@@ -28,7 +28,7 @@ class OtpService
 
         // Generate new OTP
         $otp = $this->generateOtp();
-        $expiresAt = Carbon::now()->addMinutes(config('otp.expires_in'));
+        $expiresAt = Carbon::now()->addMinutes((int) config('otp.expires_in'));
 
         // Create OTP record
         $otpCode = OtpCode::create([
@@ -47,8 +47,8 @@ class OtpService
      */
     private function checkRequestLimits(User $user, string $type): void
     {
-        $maxRequests = config('otp.max_requests');
-        $requestWindow = config('otp.request_window');
+        $maxRequests = (int) config('otp.max_requests');
+        $requestWindow = (int) config('otp.request_window');
 
         $recentOtps = $user->otpCodes()
                            ->type($type)
@@ -72,7 +72,7 @@ class OtpService
      */
     private function checkResendCooldown(User $user, string $type): void
     {
-        $cooldownSeconds = config('otp.resend_cooldown');
+        $cooldownSeconds = (int) config('otp.resend_cooldown');
 
         $latestOtp = $user->otpCodes()
                           ->type($type)
@@ -135,7 +135,7 @@ class OtpService
      */
     private function generateOtp(): string
     {
-        $length = config('otp.length', 6);
+        $length = (int) config('otp.length', 6);
         return str_pad(random_int(0, pow(10, $length) - 1), $length, '0', STR_PAD_LEFT);
     }
 
@@ -206,7 +206,7 @@ class OtpService
      */
     public function getResendCooldownRemaining(User $user, string $type = 'login'): ?int
     {
-        $cooldownSeconds = config('otp.resend_cooldown');
+        $cooldownSeconds = (int) config('otp.resend_cooldown');
 
         $latestOtp = $user->otpCodes()
                           ->type($type)
@@ -225,8 +225,8 @@ class OtpService
      */
     public function getRemainingRequests(User $user, string $type = 'login'): array
     {
-        $maxRequests = config('otp.max_requests');
-        $requestWindow = config('otp.request_window');
+        $maxRequests = (int) config('otp.max_requests');
+        $requestWindow = (int) config('otp.request_window');
 
         $recentOtps = $user->otpCodes()
                            ->type($type)

@@ -17,7 +17,9 @@
         <button
           @click="startEditing"
           class="ml-2 p-1 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          title="$t('favorites.edit') + ' ' + $t('favorites.notes').toLowerCase()"
+          :title="
+            $t('favorites.edit') + ' ' + $t('favorites.notes').toLowerCase()
+          "
         >
           <svg
             class="w-4 h-4"

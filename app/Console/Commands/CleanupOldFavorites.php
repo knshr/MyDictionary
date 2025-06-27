@@ -15,14 +15,14 @@ class CleanupOldFavorites extends Command
      *
      * @var string
      */
-    protected $signature = 'favorites:cleanup {--days= : Number of days to keep favorites (overrides setting)}';
+    protected $signature = 'favorites:cleanup {--days= : Number of days to keep favorites (overrides setting)} {--hours= : Number of hours to keep favorites (overrides setting)} {--minutes= : Number of minutes to keep favorites (overrides setting)}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Clean up old favorites based on configurable retention period';
+    protected $description = 'Clean up old favorites based on configurable retention period (days, hours, minutes)';
 
     /**
      * Execute the console command.
@@ -37,12 +37,19 @@ class CleanupOldFavorites extends Command
             return 0;
         }
 
-        // Get days from command option or settings
+        // Get time values from command options or settings
         $days = $this->option('days') ?? Setting::getValue('favorites_cleanup_days', 30);
-        $cutoffDate = now()->subDays($days);
+        $hours = $this->option('hours') ?? Setting::getValue('favorites_cleanup_hours', 0);
+        $minutes = $this->option('minutes') ?? Setting::getValue('favorites_cleanup_minutes', 0);
 
-        $this->info("Starting cleanup of favorites older than {$days} days...");
-        Log::info("Starting favorites cleanup for items older than {$days} days");
+        // Calculate cutoff date
+        $cutoffDate = now()->subDays($days)->subHours($hours)->subMinutes($minutes);
+
+        // Build time description
+        $timeDescription = $this->buildTimeDescription($days, $hours, $minutes);
+
+        $this->info("Starting cleanup of favorites older than {$timeDescription}...");
+        Log::info("Starting favorites cleanup for items older than {$timeDescription}");
 
         try {
             // Get count of favorites to be deleted
@@ -62,7 +69,9 @@ class CleanupOldFavorites extends Command
             $this->info("Successfully deleted {$deletedCount} old favorites.");
             Log::info("Successfully deleted {$deletedCount} old favorites", [
                 'cutoff_date' => $cutoffDate->toDateTimeString(),
-                'retention_days' => $days
+                'retention_days' => $days,
+                'retention_hours' => $hours,
+                'retention_minutes' => $minutes
             ]);
 
             return 0;
@@ -74,10 +83,38 @@ class CleanupOldFavorites extends Command
                 'exception' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'cutoff_date' => $cutoffDate->toDateTimeString(),
-                'retention_days' => $days
+                'retention_days' => $days,
+                'retention_hours' => $hours,
+                'retention_minutes' => $minutes
             ]);
 
             return 1;
         }
+    }
+
+    /**
+     * Build a human-readable time description
+     */
+    private function buildTimeDescription(int $days, int $hours, int $minutes): string
+    {
+        $parts = [];
+
+        if ($days > 0) {
+            $parts[] = $days . ' ' . ($days === 1 ? 'day' : 'days');
+        }
+
+        if ($hours > 0) {
+            $parts[] = $hours . ' ' . ($hours === 1 ? 'hour' : 'hours');
+        }
+
+        if ($minutes > 0) {
+            $parts[] = $minutes . ' ' . ($minutes === 1 ? 'minute' : 'minutes');
+        }
+
+        if (empty($parts)) {
+            return '0 minutes';
+        }
+
+        return implode(', ', $parts);
     }
 }

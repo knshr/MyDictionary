@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full">
+  <div class="w-full" ref="containerRef">
     <!-- Search Input -->
     <div class="relative">
       <div class="relative">
@@ -7,8 +7,9 @@
           v-model="searchQuery"
           @keyup.enter="handleSearch"
           @input="handleInput"
+          @focus="showDropdown = true"
           type="text"
-          placeholder="Search for a word..."
+          :placeholder="$t('dictionary.searchPlaceholder')"
           class="w-full px-4 py-3 pl-12 pr-12 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
           :class="{ 'border-red-500': showError }"
         />
@@ -54,25 +55,25 @@
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>
           </svg>
-          <span v-else>Search</span>
+          <span v-else>{{ $t('navigation.search') }}</span>
         </button>
       </div>
 
       <!-- Search History Dropdown -->
       <div
-        v-if="showHistory && searchHistory.length > 0"
+        v-if="showDropdown && showHistory && searchHistory.length > 0"
         class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
       >
         <div class="p-2">
           <div class="flex justify-between items-center mb-2">
-            <span class="text-sm font-medium text-gray-700"
-              >Recent Searches</span
-            >
+            <span class="text-sm font-medium text-gray-700">{{
+              $t('dictionary.recentSearches')
+            }}</span>
             <button
               @click="clearHistory"
               class="text-sm text-red-600 hover:text-red-800"
             >
-              Clear
+              {{ $t('dictionary.clear') }}
             </button>
           </div>
           <div
@@ -102,8 +103,11 @@
 </template>
 
 <script setup>
-  import { ref, computed, watch } from 'vue';
+  import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+  import { useI18n } from 'vue-i18n';
   import { useDictionaryStore } from '@/stores/dictionary';
+
+  const { t } = useI18n();
 
   const props = defineProps({
     placeholder: {
@@ -128,10 +132,28 @@
     () => error.value && searchQuery.value === dictionaryStore.currentQuery
   );
 
+  // Dropdown visibility state
+  const showDropdown = ref(false);
+  const containerRef = ref(null);
+
+  function handleClickOutside(event) {
+    if (containerRef.value && !containerRef.value.contains(event.target)) {
+      showDropdown.value = false;
+    }
+  }
+
+  onMounted(() => {
+    document.addEventListener('click', handleClickOutside);
+  });
+  onBeforeUnmount(() => {
+    document.removeEventListener('click', handleClickOutside);
+  });
+
   const handleSearch = () => {
     if (!searchQuery.value.trim()) return;
     dictionaryStore.searchWord(searchQuery.value);
     emit('search', searchQuery.value);
+    showDropdown.value = false;
   };
 
   const handleInput = () => {
@@ -139,6 +161,7 @@
     if (error.value && searchQuery.value !== dictionaryStore.currentQuery) {
       dictionaryStore.error = null;
     }
+    showDropdown.value = true;
   };
 
   const selectHistoryItem = query => {
@@ -155,9 +178,11 @@
     const now = new Date();
     const diffInMinutes = Math.floor((now - date) / (1000 * 60));
 
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    if (diffInMinutes < 1) return t('common.justNow');
+    if (diffInMinutes < 60)
+      return `${diffInMinutes}${t('common.minutes')} ${t('common.ago')}`;
+    if (diffInMinutes < 1440)
+      return `${Math.floor(diffInMinutes / 60)}${t('common.hours')} ${t('common.ago')}`;
     return date.toLocaleDateString();
   };
 

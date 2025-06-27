@@ -20,19 +20,95 @@ export const useAuthStore = defineStore('auth', () => {
     otp_remaining_time_seconds: 0,
   });
 
-  // Set up axios defaults
+  // OTP state persistence
+  const OTP_STORAGE_KEY = 'pending_otp_state';
+
+  const saveOtpState = (email, type = 'login') => {
+    const otpState = {
+      email,
+      type,
+      timestamp: Date.now(),
+      requiresOtp: true,
+    };
+    localStorage.setItem(OTP_STORAGE_KEY, JSON.stringify(otpState));
+  };
+
+  const loadOtpState = () => {
+    try {
+      const stored = localStorage.getItem(OTP_STORAGE_KEY);
+      if (!stored) return null;
+
+      const otpState = JSON.parse(stored);
+      const now = Date.now();
+      const otpExpiryTime = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+      // Check if OTP state is still valid (not expired)
+      if (now - otpState.timestamp > otpExpiryTime) {
+        clearOtpState();
+        return null;
+      }
+
+      return otpState;
+    } catch (error) {
+      console.error('Error loading OTP state:', error);
+      clearOtpState();
+      return null;
+    }
+  };
+
+  const clearOtpState = () => {
+    localStorage.removeItem(OTP_STORAGE_KEY);
+  };
+
+  const restoreOtpState = async () => {
+    const otpState = loadOtpState();
+    console.log('Loading OTP state:', otpState);
+    if (otpState) {
+      console.log('Setting requiresOtp to true');
+      requiresOtp.value = true;
+      otpEmail.value = otpState.email;
+      console.log('OTP email set to:', otpEmail.value);
+
+      // Try to get current OTP status from server
+      try {
+        console.log('Fetching OTP status from server...');
+        await getOtpStatus(otpState.type);
+        console.log('OTP status fetched successfully');
+        return true;
+      } catch (error) {
+        console.error('Error restoring OTP status:', error);
+        // If we can't get status from server, clear the state
+        clearOtpState();
+        requiresOtp.value = false;
+        otpEmail.value = '';
+        return false;
+      }
+    }
+    console.log('No OTP state found to restore');
+    return false;
+  };
+
+  // Set up axios defaults for Sanctum token authentication
   if (token.value) {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`;
   }
 
   const setUser = userData => {
+    console.log('Setting user:', userData);
     user.value = userData;
+    console.log('User set, current user value:', user.value);
+    console.log('Current token value:', token.value);
+    console.log('isAuthenticated computed value:', isAuthenticated.value);
   };
 
   const setToken = authToken => {
+    console.log('Setting token:', authToken ? 'Token received' : 'No token');
     token.value = authToken;
     localStorage.setItem('auth_token', authToken);
     axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+    console.log('Token set, current user value:', user.value);
+    console.log('Current token value:', token.value);
+    console.log('isAuthenticated computed value:', isAuthenticated.value);
   };
 
   const clearUser = () => {
@@ -90,24 +166,32 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async credentials => {
     try {
       const response = await axios.post('/api/auth/login', credentials);
-      const { data } = response.data;
 
-      if (data.requires_otp) {
-        requiresOtp.value = true;
-        otpEmail.value = credentials.email;
-        setUser(data.user);
+      if (response.data.success) {
+        // Check if the response indicates OTP is required
+        if (response.data.data.requires_otp) {
+          requiresOtp.value = true;
+          otpEmail.value = credentials.email;
 
-        // Update OTP status when OTP is required
-        await getOtpStatus('login');
+          // Save OTP state to localStorage
+          saveOtpState(credentials.email, 'login');
 
-        return { success: true, requiresOtp: true, message: data.message };
-      } else {
-        setUser(data.user);
-        if (data.token) {
-          setToken(data.token);
+          // Update OTP status when OTP is required
+          await getOtpStatus('login');
+
+          return {
+            success: true,
+            requiresOtp: true,
+            message: response.data.message,
+          };
+        } else {
+          // Login successful without OTP, redirect to dashboard
+          window.location.href = '/dashboard';
+          return { success: true, requiresOtp: false };
         }
-        return { success: true, requiresOtp: false };
       }
+
+      return { success: false, message: 'Login failed' };
     } catch (error) {
       return {
         success: false,
@@ -118,50 +202,45 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   const verifyOtp = async otp => {
-    try {
-      const response = await axios.post('/api/auth/verify-otp', {
-        email: otpEmail.value,
-        otp: otp,
-      });
-      const { data } = response.data;
-
-      setUser(data.user);
-      if (data.token) {
-        setToken(data.token);
-      }
-      requiresOtp.value = false;
-      otpEmail.value = '';
-
-      return { success: true, message: data.message };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || 'OTP verification failed',
-      };
-    }
+    // This method is no longer used - OTP verification is now handled by Inertia forms
+    console.log(
+      'verifyOtp method is deprecated - use Inertia form handling instead'
+    );
+    return {
+      success: false,
+      message: 'Use Inertia form handling for OTP verification',
+    };
   };
 
   const register = async userData => {
     try {
       const response = await axios.post('/api/auth/register', userData);
-      const { data } = response.data;
 
-      if (data.requires_otp) {
-        requiresOtp.value = true;
-        otpEmail.value = userData.email;
-        setUser(data.user);
+      if (response.data.success) {
+        // Check if the response indicates OTP is required
+        if (response.data.data.requires_otp) {
+          requiresOtp.value = true;
+          otpEmail.value = userData.email;
 
-        // Update OTP status when OTP is required
-        await getOtpStatus('register');
+          // Save OTP state to localStorage
+          saveOtpState(userData.email, 'register');
 
-        return { success: true, requiresOtp: true, message: data.message };
-      } else {
-        setUser(data.user);
-        if (data.token) {
-          setToken(data.token);
+          // Update OTP status when OTP is required
+          await getOtpStatus('register');
+
+          return {
+            success: true,
+            requiresOtp: true,
+            message: response.data.message,
+          };
+        } else {
+          // Registration successful without OTP, redirect to dashboard
+          window.location.href = '/dashboard';
+          return { success: true, requiresOtp: false };
         }
-        return { success: true, requiresOtp: false };
       }
+
+      return { success: false, message: 'Registration failed' };
     } catch (error) {
       return {
         success: false,
@@ -177,16 +256,24 @@ export const useAuthStore = defineStore('auth', () => {
         email: otpEmail.value,
         otp: otp,
       });
-      const { data } = response.data;
 
-      setUser(data.user);
-      if (data.token) {
-        setToken(data.token);
+      if (response.data.success) {
+        // Store the token and user data
+        if (response.data.data.token) {
+          setToken(response.data.data.token);
+          setUser(response.data.data.user);
+        }
+
+        // Clear OTP state
+        requiresOtp.value = false;
+        otpEmail.value = '';
+        clearOtpState();
+
+        // Use Inertia router instead of window.location to preserve state
+        return { success: true, message: 'OTP verified successfully.' };
       }
-      requiresOtp.value = false;
-      otpEmail.value = '';
 
-      return { success: true, message: data.message };
+      return { success: false, message: 'OTP verification failed' };
     } catch (error) {
       return {
         success: false,
@@ -205,7 +292,10 @@ export const useAuthStore = defineStore('auth', () => {
       // Update OTP status after successful resend
       await getOtpStatus(type);
 
-      return { success: true, message: response.data.message };
+      return {
+        success: true,
+        message: response.data.message || 'OTP sent successfully.',
+      };
     } catch (error) {
       // Update OTP status even on error to get current limits
       await getOtpStatus(type);
@@ -220,15 +310,15 @@ export const useAuthStore = defineStore('auth', () => {
 
   const logout = async () => {
     try {
-      if (token.value) {
-        await axios.post('/api/auth/logout');
-      }
+      // Use API logout to revoke token
+      await axios.post('/api/auth/logout');
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
       clearUser();
       requiresOtp.value = false;
       otpEmail.value = '';
+      clearOtpState();
     }
   };
 
@@ -258,6 +348,10 @@ export const useAuthStore = defineStore('auth', () => {
     canResendOtp,
     cooldownMessage,
     requestLimitMessage,
+    saveOtpState,
+    loadOtpState,
+    clearOtpState,
+    restoreOtpState,
     login,
     verifyOtp,
     register,

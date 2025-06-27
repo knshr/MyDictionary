@@ -22,9 +22,19 @@ export const useToastStore = defineStore('toast', () => {
     toasts.value = [];
   }
 
+  function showSuccess(message, duration = 3000) {
+    showToast({ message, type: 'success', duration });
+  }
+
+  function showError(message, duration = 3000) {
+    showToast({ message, type: 'error', duration });
+  }
+
   return {
     toasts,
     showToast,
+    showSuccess,
+    showError,
     removeToast,
     clearToasts,
   };

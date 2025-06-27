@@ -32,7 +32,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/otp-status', [AuthController::class, 'getOtpStatus']);
 });
 
-// Protected Routes
+// Protected Routes - Use Sanctum for token-based authentication
 Route::middleware('auth:sanctum')->group(function () {
     // Authentication Routes (Protected)
     Route::prefix('auth')->group(function () {

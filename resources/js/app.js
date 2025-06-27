@@ -11,16 +11,18 @@ import tl from './locales/tl.js';
 import ja from './locales/ja.js';
 
 // Import components
-import Login from './Pages/Login.vue';
 import Register from './Pages/Register.vue';
 import Dashboard from './Pages/Dashboard/DashboardLayout.vue';
 import Dictionary from './Pages/Dictionary.vue';
 import Home from './Pages/Home.vue';
 
+// Get initial language from localStorage
+const initialLanguage = localStorage.getItem('language') || 'en';
+
 // Create i18n instance
 const i18n = createI18n({
   legacy: false,
-  locale: 'en',
+  locale: initialLanguage,
   fallbackLocale: 'en',
   messages: {
     en,
@@ -39,10 +41,12 @@ createInertiaApp({
       import.meta.glob('./Pages/**/*.vue')
     ),
   setup({ el, App, props, plugin }) {
-    return createApp({ render: () => h(App, props) })
-      .use(plugin)
-      .use(pinia)
-      .use(i18n)
-      .mount(el);
+    const app = createApp({ render: () => h(App, props) });
+
+    app.use(plugin);
+    app.use(pinia);
+    app.use(i18n);
+
+    app.mount(el);
   },
 });

@@ -1,5 +1,5 @@
 <template>
-  <DashboardLayout>
+  <Layout>
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
       <div class="p-6 text-gray-900">
         <h2 class="text-2xl font-bold mb-4">{{ $t('app.welcome') }}</h2>
@@ -45,17 +45,17 @@
             <p class="text-gray-600 mb-4">
               {{ $t('dictionary.searchPlaceholder') }}
             </p>
-            <Link href="/search" class="btn btn-primary">
+            <Link href="/dictionary" class="btn btn-primary">
               {{ $t('navigation.search') }}
             </Link>
           </div>
         </div>
       </div>
     </div>
-  </DashboardLayout>
+  </Layout>
 </template>
 
 <script setup>
   import { Link } from '@inertiajs/vue3';
-  import DashboardLayout from './Dashboard/DashboardLayout.vue';
+  import Layout from './Layout.vue';
 </script>

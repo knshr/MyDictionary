@@ -22,6 +22,20 @@ class SettingsSeeder extends Seeder
         );
 
         Setting::setValue(
+            'favorites_cleanup_hours',
+            0,
+            'integer',
+            'Number of hours to keep favorites before automatic cleanup'
+        );
+
+        Setting::setValue(
+            'favorites_cleanup_minutes',
+            0,
+            'integer',
+            'Number of minutes to keep favorites before automatic cleanup'
+        );
+
+        Setting::setValue(
             'favorites_cleanup_enabled',
             true,
             'boolean',

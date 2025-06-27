@@ -6,9 +6,11 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex justify-between items-center py-6">
             <div>
-              <h1 class="text-3xl font-bold text-gray-900">My Favorites</h1>
+              <h1 class="text-3xl font-bold text-gray-900">
+                {{ $t('favorites.title') }}
+              </h1>
               <p class="mt-1 text-sm text-gray-500">
-                Your saved words and definitions
+                {{ $t('favorites.subtitle') }}
               </p>
             </div>
             <div class="flex items-center space-x-4">
@@ -37,13 +39,13 @@
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                <span v-else>Refresh</span>
+                <span v-else>{{ $t('favorites.refresh') }}</span>
               </button>
               <button
                 @click="navigateToDictionary"
                 class="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
               >
-                Search Dictionary
+                {{ $t('favorites.searchDictionary') }}
               </button>
             </div>
           </div>
@@ -60,7 +62,7 @@
               <input
                 v-model="searchQuery"
                 type="text"
-                placeholder="Search your favorites..."
+                :placeholder="$t('favorites.searchFavorites')"
                 class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -69,14 +71,22 @@
                 v-model="sortBy"
                 class="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="created_at">Date Added</option>
-                <option value="word">Word</option>
-                <option value="updated_at">Last Modified</option>
+                <option value="created_at">
+                  {{ $t('favorites.dateAdded') }}
+                </option>
+                <option value="word">{{ $t('favorites.word') }}</option>
+                <option value="updated_at">
+                  {{ $t('favorites.lastModified') }}
+                </option>
               </select>
               <button
                 @click="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'"
                 class="p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                :title="sortOrder === 'asc' ? 'Ascending' : 'Descending'"
+                :title="
+                  sortOrder === 'asc'
+                    ? $t('favorites.ascending')
+                    : $t('favorites.descending')
+                "
               >
                 <svg
                   class="w-5 h-5"
@@ -118,7 +128,9 @@
                 </svg>
               </div>
               <div class="ml-4">
-                <p class="text-sm font-medium text-gray-500">Total Favorites</p>
+                <p class="text-sm font-medium text-gray-500">
+                  {{ $t('favorites.totalFavorites') }}
+                </p>
                 <p class="text-2xl font-semibold text-gray-900">
                   {{ favoritesCount }}
                 </p>
@@ -144,7 +156,9 @@
                 </svg>
               </div>
               <div class="ml-4">
-                <p class="text-sm font-medium text-gray-500">With Notes</p>
+                <p class="text-sm font-medium text-gray-500">
+                  {{ $t('favorites.withNotes') }}
+                </p>
                 <p class="text-2xl font-semibold text-gray-900">
                   {{ favoritesWithNotes }}
                 </p>
@@ -170,7 +184,9 @@
                 </svg>
               </div>
               <div class="ml-4">
-                <p class="text-sm font-medium text-gray-500">Recently Added</p>
+                <p class="text-sm font-medium text-gray-500">
+                  {{ $t('favorites.recentlyAdded') }}
+                </p>
                 <p class="text-2xl font-semibold text-gray-900">
                   {{ recentFavorites }}
                 </p>
@@ -187,7 +203,9 @@
           <div
             class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"
           ></div>
-          <p class="text-gray-600">Loading your favorites...</p>
+          <p class="text-gray-600">
+            {{ $t('favorites.loadingYourFavorites') }}
+          </p>
         </div>
 
         <div
@@ -207,52 +225,46 @@
               />
             </svg>
             <h3 class="text-lg font-medium text-gray-900 mb-2">
-              {{ searchQuery ? 'No favorites found' : 'No favorites yet' }}
+              {{ $t('favorites.noFavorites') }}
             </h3>
             <p class="text-gray-500 mb-6">
-              {{
-                searchQuery
-                  ? 'Try adjusting your search terms.'
-                  : 'Start by searching for words in the dictionary and adding them to your favorites.'
-              }}
+              {{ $t('favorites.noFavoritesDescription') }}
             </p>
             <button
               @click="navigateToDictionary"
-              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              Search Dictionary
+              {{ $t('favorites.searchDictionary') }}
             </button>
           </div>
         </div>
 
         <div v-else class="space-y-6">
           <div
-            v-for="favorite in filteredFavorites"
+            v-for="favorite in paginatedFavorites"
             :key="favorite.id"
             class="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
           >
-            <div class="flex items-start justify-between mb-4">
+            <div class="flex justify-between items-start mb-4">
               <div class="flex-1">
-                <div class="flex items-center space-x-3 mb-2">
-                  <h3 class="text-xl font-semibold text-gray-900">
-                    {{ favorite.word }}
-                  </h3>
-                  <FavoriteButton
-                    :word="favorite.word"
-                    :definition="favorite.definition"
-                    @added="handleFavoriteAdded"
-                    @removed="handleFavoriteRemoved"
-                  />
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">
+                  {{ favorite.word }}
+                </h3>
+                <div class="text-sm text-gray-500 mb-2">
+                  {{ $t('favorites.dateAdded') }}:
+                  {{ formatDate(favorite.created_at) }}
                 </div>
-                <p class="text-gray-700">
-                  {{ favorite.definition }}
-                </p>
+                <div
+                  v-if="favorite.definition"
+                  class="text-gray-700 mb-4"
+                  v-html="favorite.definition"
+                ></div>
               </div>
-              <div class="flex items-center space-x-2">
+              <div class="flex items-center space-x-2 ml-4">
                 <button
-                  @click="searchWord(favorite.word)"
+                  @click="editNotes(favorite)"
                   class="p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                  title="Search this word"
+                  :title="$t('favorites.edit')"
                 >
                   <svg
                     class="w-5 h-5"
@@ -264,14 +276,14 @@
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       stroke-width="2"
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                     />
                   </svg>
                 </button>
                 <button
                   @click="removeFavorite(favorite.id)"
                   class="p-2 text-red-400 hover:text-red-600 transition-colors duration-200"
-                  title="Remove from favorites"
+                  :title="$t('favorites.delete')"
                 >
                   <svg
                     class="w-5 h-5"
@@ -291,19 +303,77 @@
             </div>
 
             <!-- Notes Section -->
-            <div class="border-t pt-4">
-              <h4 class="text-sm font-medium text-gray-900 mb-2">Notes</h4>
-              <FavoriteNotes
-                :favorite="favorite"
-                @updated="handleFavoriteUpdated"
-              />
+            <div v-if="favorite.notes" class="mt-4 p-4 bg-gray-50 rounded-lg">
+              <h4 class="text-sm font-medium text-gray-900 mb-2">
+                {{ $t('favorites.notes') }}
+              </h4>
+              <p class="text-gray-700 text-sm">{{ favorite.notes }}</p>
             </div>
+          </div>
 
-            <div class="mt-4 text-xs text-gray-500">
-              Added {{ formatDate(favorite.created_at) }}
-              <span v-if="favorite.updated_at !== favorite.created_at">
-                • Updated {{ formatDate(favorite.updated_at) }}
-              </span>
+          <!-- Pagination -->
+          <div
+            v-if="totalPages > 1"
+            class="flex justify-center items-center space-x-2 mt-8"
+          >
+            <button
+              @click="currentPage = Math.max(1, currentPage - 1)"
+              :disabled="currentPage === 1"
+              class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {{ $t('common.previous') }}
+            </button>
+            <span class="text-sm text-gray-700">
+              {{ $t('common.page') }} {{ currentPage }} {{ $t('common.of') }}
+              {{ totalPages }}
+            </span>
+            <button
+              @click="currentPage = Math.min(totalPages, currentPage + 1)"
+              :disabled="currentPage === totalPages"
+              class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {{ $t('common.next') }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes Modal -->
+      <div
+        v-if="showNotesModal"
+        class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+        @click="closeNotesModal"
+      >
+        <div
+          class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white"
+          @click.stop
+        >
+          <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">
+              {{ $t('favorites.addNotes') }}
+            </h3>
+            <textarea
+              v-model="editingNotes"
+              rows="4"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              :placeholder="$t('favorites.addNotes')"
+              autofocus
+            ></textarea>
+            <div class="flex justify-end space-x-3 mt-4">
+              <button
+                @click="closeNotesModal"
+                class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors duration-200"
+              >
+                {{ $t('favorites.cancel') }}
+              </button>
+              <button
+                @click="saveNotes"
+                :disabled="isSavingNotes"
+                class="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                <span v-if="isSavingNotes">Saving...</span>
+                <span v-else>{{ $t('favorites.save') }}</span>
+              </button>
             </div>
           </div>
         </div>
@@ -313,114 +383,181 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted } from 'vue';
+  import { ref, computed, onMounted, onUnmounted } from 'vue';
   import { router } from '@inertiajs/vue3';
   import { useFavoritesStore } from '@/stores/favorites';
-  import DashboardLayout from '@/Pages/Dashboard/DashboardLayout.vue';
-  import FavoriteButton from '@/components/FavoriteButton.vue';
-  import FavoriteNotes from '@/components/FavoriteNotes.vue';
+  import { useToastStore } from '@/stores/toast';
+  import DashboardLayout from './Dashboard/DashboardLayout.vue';
 
   const favoritesStore = useFavoritesStore();
+  const toastStore = useToastStore();
+
+  const isLoading = ref(false);
   const searchQuery = ref('');
   const sortBy = ref('created_at');
   const sortOrder = ref('desc');
+  const currentPage = ref(1);
+  const itemsPerPage = ref(10);
+  const showNotesModal = ref(false);
+  const editingFavorite = ref(null);
+  const editingNotes = ref('');
+  const isSavingNotes = ref(false);
 
-  const isLoading = computed(() => favoritesStore.isLoading);
   const favorites = computed(() => favoritesStore.favorites);
-  const favoritesCount = computed(() => favoritesStore.favoritesCount);
+  const favoritesCount = computed(() => favorites.value.length);
+  const favoritesWithNotes = computed(
+    () => favorites.value.filter(f => f.notes && f.notes.trim()).length
+  );
+  const recentFavorites = computed(() => {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    return favorites.value.filter(f => new Date(f.created_at) > oneWeekAgo)
+      .length;
+  });
 
   const filteredFavorites = computed(() => {
     let filtered = favorites.value;
 
-    // Search filter
     if (searchQuery.value) {
-      const query = searchQuery.value.toLowerCase();
       filtered = filtered.filter(
-        fav =>
-          fav.word.toLowerCase().includes(query) ||
-          fav.definition.toLowerCase().includes(query) ||
-          (fav.notes && fav.notes.toLowerCase().includes(query))
+        f =>
+          f.word.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          (f.definition &&
+            f.definition
+              .toLowerCase()
+              .includes(searchQuery.value.toLowerCase())) ||
+          (f.notes &&
+            f.notes.toLowerCase().includes(searchQuery.value.toLowerCase()))
       );
     }
 
-    // Sort
     filtered.sort((a, b) => {
-      let aVal = a[sortBy.value];
-      let bVal = b[sortBy.value];
+      let aValue, bValue;
 
-      if (sortBy.value === 'word') {
-        aVal = aVal.toLowerCase();
-        bVal = bVal.toLowerCase();
+      switch (sortBy.value) {
+        case 'word':
+          aValue = a.word.toLowerCase();
+          bValue = b.word.toLowerCase();
+          break;
+        case 'updated_at':
+          aValue = new Date(a.updated_at);
+          bValue = new Date(b.updated_at);
+          break;
+        default:
+          aValue = new Date(a.created_at);
+          bValue = new Date(b.created_at);
       }
 
       if (sortOrder.value === 'asc') {
-        return aVal > bVal ? 1 : -1;
+        return aValue > bValue ? 1 : -1;
       } else {
-        return aVal < bVal ? 1 : -1;
+        return aValue < bValue ? 1 : -1;
       }
     });
 
     return filtered;
   });
 
-  const favoritesWithNotes = computed(() => {
-    return favorites.value.filter(fav => fav.notes && fav.notes.trim()).length;
+  const totalPages = computed(() =>
+    Math.ceil(filteredFavorites.value.length / itemsPerPage.value)
+  );
+
+  const paginatedFavorites = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage.value;
+    const end = start + itemsPerPage.value;
+    return filteredFavorites.value.slice(start, end);
   });
 
-  const recentFavorites = computed(() => {
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    return favorites.value.filter(fav => new Date(fav.created_at) > oneWeekAgo)
-      .length;
-  });
-
-  onMounted(() => {
-    favoritesStore.fetchFavorites();
-  });
-
-  const refreshFavorites = () => {
-    favoritesStore.fetchFavorites();
+  const refreshFavorites = async () => {
+    isLoading.value = true;
+    try {
+      await favoritesStore.fetchFavorites();
+      toastStore.showSuccess('Favorites refreshed successfully');
+    } catch (error) {
+      toastStore.showError('Failed to refresh favorites');
+    } finally {
+      isLoading.value = false;
+    }
   };
 
   const navigateToDictionary = () => {
     router.visit('/dictionary');
   };
 
-  const searchWord = word => {
-    router.visit(`/dictionary?q=${encodeURIComponent(word)}`);
-  };
-
   const removeFavorite = async id => {
-    if (
-      confirm('Are you sure you want to remove this word from your favorites?')
-    ) {
+    try {
       await favoritesStore.removeFavorite(id);
+      toastStore.showSuccess('Favorite removed successfully');
+    } catch (error) {
+      toastStore.showError('Failed to remove favorite');
     }
   };
 
-  const handleFavoriteAdded = favorite => {
-    // Refresh the list to show the new favorite
-    favoritesStore.fetchFavorites();
+  const editNotes = favorite => {
+    editingFavorite.value = favorite;
+    editingNotes.value = favorite.notes || '';
+    showNotesModal.value = true;
   };
 
-  const handleFavoriteRemoved = favorite => {
-    // The store already updates the list
+  const closeNotesModal = () => {
+    console.log('closeNotesModal called');
+    showNotesModal.value = false;
+    editingFavorite.value = null;
+    editingNotes.value = '';
+    isSavingNotes.value = false;
   };
 
-  const handleFavoriteUpdated = favorite => {
-    // The store already updates the list
+  const handleKeydown = event => {
+    if (event.key === 'Escape' && showNotesModal.value) {
+      closeNotesModal();
+    }
+  };
+
+  const saveNotes = async () => {
+    console.log('saveNotes called');
+    if (!editingFavorite.value || isSavingNotes.value) return;
+
+    isSavingNotes.value = true;
+    try {
+      const result = await favoritesStore.updateFavorite(
+        editingFavorite.value.id,
+        editingNotes.value
+      );
+
+      console.log('updateFavorite result:', result);
+
+      if (result.success) {
+        toastStore.showSuccess('Notes saved successfully');
+        closeNotesModal();
+      } else {
+        toastStore.showError(result.error || 'Failed to save notes');
+      }
+    } catch (error) {
+      console.error('Error in saveNotes:', error);
+      toastStore.showError('Failed to save notes');
+    } finally {
+      isSavingNotes.value = false;
+    }
   };
 
   const formatDate = dateString => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-
-    if (diffInDays === 0) return 'Today';
-    if (diffInDays === 1) return 'Yesterday';
-    if (diffInDays < 7) return `${diffInDays} days ago`;
-    if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} weeks ago`;
-    if (diffInDays < 365) return `${Math.floor(diffInDays / 30)} months ago`;
-    return `${Math.floor(diffInDays / 365)} years ago`;
+    return new Date(dateString).toLocaleDateString();
   };
+
+  onMounted(async () => {
+    isLoading.value = true;
+    try {
+      await favoritesStore.fetchFavorites();
+    } catch (error) {
+      toastStore.showError('Failed to load favorites');
+    } finally {
+      isLoading.value = false;
+    }
+
+    window.addEventListener('keydown', handleKeydown);
+  });
+
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeydown);
+  });
 </script>
